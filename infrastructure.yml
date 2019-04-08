@@ -1,0 +1,262 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  CloudFormation Template core infrastructure
+
+Parameters:
+  VpcCidr:
+    Type: String
+    Default: "10.150.0.0/16"
+  PublicSubnetCidr:
+    Type: String
+    Default: "10.150.1.0/24"
+  PrivateSubnetCidr:
+    Type: String
+    Default: "10.150.2.0/24"
+
+Resources:
+  Vpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCidr
+      EnableDnsSupport: True
+      EnableDnsHostnames: True
+      Tags:
+        - Key: Name
+          Value: "demoVpc"
+
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref Vpc
+      CidrBlock: !Ref PublicSubnetCidr
+      Tags:
+        - Key: Name
+          Value: "demoPublicSubnet"
+    DependsOn: Vpc
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref Vpc
+      Tags:
+        - Key: Name
+          Value: PublicRouteTable
+    DependsOn: Vpc
+
+  PublicRouteTableAttach:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet
+    DependsOn:
+      - PublicRouteTable
+      - PublicSubnet
+
+  PrivateSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref Vpc
+      CidrBlock: !Ref PrivateSubnetCidr
+      Tags:
+        - Key: Name
+          Value: "demoPrivateSubnet"
+    DependsOn: Vpc
+
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref Vpc
+      Tags:
+        - Key: Name
+          Value: PrivateRouteTable
+    DependsOn: Vpc
+
+  PrivateRouteTableAttach:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      SubnetId: !Ref PrivateSubnet
+    DependsOn:
+      - PrivateRouteTable
+      - PrivateSubnet
+
+  EIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+    DependsOn: Vpc
+
+  NatGateway:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt EIP.AllocationId
+      SubnetId: !Ref PublicSubnet
+      Tags:
+        - Key: Name
+          Value: NatGateway
+    DependsOn:
+      - EIP
+      - PublicSubnet
+
+  InternetGW:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: InternetGW
+
+  InternetGWAttach:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref Vpc
+      InternetGatewayId: !Ref InternetGW
+    DependsOn:
+      - InternetGW
+      - Vpc
+
+  NgwRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      RouteTableId: !Ref PrivateRouteTable
+      NatGatewayId: !Ref NatGateway
+    DependsOn:
+      - NatGateway
+      - PrivateRouteTable
+      - PrivateRouteTableAttach
+
+  InternetGwRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      RouteTableId: !Ref PublicRouteTable
+      GatewayId: !Ref InternetGW
+    DependsOn:
+      - InternetGW
+      - InternetGWAttach
+      - PublicRouteTable
+      - PublicRouteTableAttach
+  
+  SecurityGroupA:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: SecurityGroupA
+      GroupDescription: "Security Group A"
+      VpcId: !Ref Vpc
+      Tags:
+        - Key: Name
+          Value: SecurityGroupA
+
+  SgIngressRuleA:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      CidrIp: "0.0.0.0/0"
+      GroupId: !GetAtt SecurityGroupA.GroupId
+      IpProtocol: "-1"
+    DependsOn: SecurityGroupA
+
+  SecurityGroupB:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: SecurityGroupB
+      GroupDescription: "Security Group B"
+      VpcId: !Ref Vpc
+      Tags:
+        - Key: Name
+          Value: SecurityGroupB
+
+  SgIngressRuleB:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      CidrIp: "0.0.0.0/0"
+      GroupId: !GetAtt SecurityGroupB.GroupId
+      IpProtocol: "-1"
+    DependsOn: SecurityGroupB
+
+  S3Bucket:
+    Type: AWS::S3::Bucket
+
+  S3BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref S3Bucket
+      PolicyDocument:
+        Statement:
+          Action:
+            - s3:GetObject
+          Effect: "Allow"
+          Resource:
+            Fn::Join:
+              - ""
+              - - "arn:aws:s3:::"
+                - !Ref S3Bucket
+                - "/*"
+          Principal: "*"
+
+
+Outputs:
+  VpcId:
+    Description: "VPC ID"
+    Value: !Ref Vpc
+    Export: 
+      Name: VpcId
+
+  PublicSubnetId:
+    Description: "PublicSubnet ID"
+    Value: !Ref PublicSubnet
+    Export: 
+      Name: PublicSubnetId
+
+  PublicRouteTableId:
+    Description: "Public Route table ID"
+    Value: !Ref PublicRouteTable
+    Export: 
+      Name: PublicRouteTableId
+
+  PrivateSubnetId:
+    Description: "Private Subnet ID"
+    Value: !Ref PrivateSubnet
+    Export:
+      Name: PrivateSubnetId
+
+  PrivateRouteTableId:
+    Description: "Private route table ID"
+    Value: !Ref PrivateRouteTable
+    Export:
+      Name: PrivateRouteTableId
+
+  EipId:
+    Description: "Elastic IP"
+    Value: !Ref EIP
+    Export:
+      Name: EipId
+
+  NatGatewayId:
+    Description: "NAT gateway ID"
+    Value: !Ref NatGateway
+    Export:
+      Name: NatGatewayId
+
+  InternetGWId:
+    Description: "Internet Gateway ID"
+    Value: !Ref InternetGW
+    Export:
+      Name: InternetGWId
+
+  SecurityGroupAId:
+    Description: "Security Group A ID"
+    Value: !Ref SecurityGroupA
+    Export:
+      Name: SecurityGroupAId
+
+  SecurityGroupBId:
+    Description: "Security Group B ID"
+    Value: !Ref SecurityGroupB
+    Export:
+      Name: SecurityGroupBId
+
+  S3BucketId:
+    Description: "S3 Bucket ID"
+    Value: !Ref S3Bucket
+    Export:
+      Name: S3BucketId
