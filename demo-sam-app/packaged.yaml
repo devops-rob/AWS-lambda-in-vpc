@@ -1,0 +1,58 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Sample SAM Template for sam-app
+
+  '
+Globals:
+  Function:
+    Timeout: 10
+Outputs:
+  HelloWorldApi:
+    Description: API Gateway endpoint URL for Prod stage for Hello World function
+    Value:
+      Fn::Sub: https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/
+  HelloWorldFunction:
+    Description: Hello World Lambda Function ARN
+    Value:
+      Fn::GetAtt:
+      - HelloWorldFunction
+      - Arn
+  HelloWorldFunctionIamRole:
+    Description: Implicit IAM Role created for Hello World function
+    Value:
+      Fn::GetAtt:
+      - HelloWorldFunctionRole
+      - Arn
+Resources:
+  HelloWorldFunction:
+    Properties:
+      CodeUri: s3://devopsrob-infrastructure-s3bucket-1tjg0fing0yrn/f8a9dd3739bbfed038288505c7c6aff4
+      Environment:
+        Variables:
+          PARAM1: VALUE
+      Events:
+        HelloWorld:
+          Properties:
+            Method: get
+            Path: /hello
+          Type: Api
+      Handler: HelloWorld::HelloWorld.Function::FunctionHandler
+      Policies:
+      - Statement:
+          Action:
+          - ec2:CreateNetworkInterface
+          - ec2:DeleteNetworkInterface
+          - ec2:DescribeInstances
+          - ec2:AttachNetworkInterface
+          - ec2:DescribeNetworkInterfaces
+          - autoscaling:CompleteLifecycleAction
+          Effect: Allow
+          Resource: '*'
+      Runtime: dotnetcore2.1
+      VpcConfig:
+        SecurityGroupIds:
+        - Fn::ImportValue: SecurityGroupAId
+        - Fn::ImportValue: SecurityGroupBId
+        SubnetIds:
+        - Fn::ImportValue: PrivateSubnetId
+    Type: AWS::Serverless::Function
+Transform: AWS::Serverless-2016-10-31
