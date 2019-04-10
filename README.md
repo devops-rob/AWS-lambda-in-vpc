@@ -72,12 +72,10 @@ We will be using AWS CloudFormation code that I have written to deploy the netwo
 The first thing we need to do is create an s3 bucket for our cloudformation scripts.  Run the following line of code subsituting the bucket name and region for one of your choosing:
 
 ```bash
-bucketurl=$(aws s3api create-bucket \
+aws s3api create-bucket \
 --bucket <insert unique bucket name here> --region <insert region here> \
 --create-bucket-configuration LocationConstraint=<insert region here> \
---acl private | jq -r '.Location')
-
-echo $bucketurl
+--acl private | jq -r '.Location'
 ```
 
 Now that the s3 bucket has been created, we need to apply a policy to the bucket to control access to it.  We'll do this using a policy document which is a json file.  You will need to edit the json file with your S3 bucket name or create your own policy document for your needs.  Once edited, run the following command
