@@ -6,8 +6,8 @@
             "Effect": "Allow",
             "Action": "s3:*",
             "Resource": [
-                "arn:aws:s3:::vpclambdademo",
-                "arn:aws:s3:::vpclambdademo/*"
+                "arn:aws:s3:::<insert s3 bucket name here>",
+                "arn:aws:s3:::<insert s3 bucket name here>/*"
             ]
         }
    ]
