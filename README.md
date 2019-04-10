@@ -7,9 +7,7 @@ AWS Lambda enables you to execute your code without having to run a server.  To 
 Some of the main benefits of using lambdas are:
 
 1. Less support overheads - as the server workloads are not your responsibility, you don't have to worry about patching them or the general health of the servers (high memory or high CPU utilization or storage usage).  You can just trust that your lambdas will always have a stable server to run on.
-2. Cost of running vs Always on VMs - With EC2 instances running a web application, they are generally always on so as to make the web application available at all times.  EC2 instances charge for every second that the VM is running, meaning your potentially could have quite a large bill come the end of the month for your server work loads.  You will be charged regardless of whether anyone is using your application or not.  There are also other costs to consider such as storage costs and static IP addresses.
-
-Lambdas only charge you for calls to the lambda which run for more than 3 seconds.  This means that if your application is made up of small short running functions, lambdas could significantly reduce your operational costs.
+2. Cost of running vs Always on VMs - With EC2 instances running a web application, they are generally always on so as to make the web application available at all times.  EC2 instances charge for every second that the VM is running, meaning your potentially could have quite a large bill come the end of the month for your server work loads.  You will be charged regardless of whether anyone is using your application or not.  There are also other costs to consider such as storage costs and static IP addresses.  Lambdas only charge you for calls to the lambda which run for more than 3 seconds.  This means that if your application is made up of small short running functions, lambdas could significantly reduce your operational costs.
 
 ## What are VPCs
 
@@ -56,7 +54,7 @@ The diagram below is a visual representation of the architecture
 
 ![Architecture Diagram](images/network_architecture.png "Architecture Diagram")
 
-## Method statement
+## Method Statement
 
 To follow along this tutorial, you will need a few pre-requisites:
 
@@ -66,6 +64,8 @@ To follow along this tutorial, you will need a few pre-requisites:
   4. jq
   
 We will be using AWS CloudFormation code that I have written to deploy the network infrastructure required for this demo.  This will require you to have AWS configure setup with your access key and secret key.  If you do not have this set up, log in to your AWS console and generate a key pair for your user in the IAM section.
+
+The following instrutions assume you are in the src folder.
 
 ### Step 1
 
@@ -96,7 +96,10 @@ aws cloudformation package --template-file infrastructure.yml \
 --output-template-file output.yml > packaged-template.yml
 ```
 
-This step is essentially building our code into an artifact that is then pushed to our artifact repository, which in this case is the S3 bucket we have just created.
+This step is essentially building our code into an artifact that is then pushed to our artifact repository, which in this case is the S3 bucket we have just created.  You will see two new files created:
+
+1. output.yml
+2. packaged-template.yml
 
 ### Step 3
 
