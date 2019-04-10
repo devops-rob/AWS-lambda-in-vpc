@@ -194,3 +194,43 @@ aws cloudformation deploy \
 --stack-name helloworld \
 --capabilities CAPABILITY_IAM
 ```
+
+## Testing
+
+With our lambda function now sucessfully deployed, the time has come to test it to make sure it is prt of the VPC but can still access resources outside of the VPC.  
+
+We will start by examining the c# code for the helloworld program that was generated to get an understanding of what it is doing.  Lets look in the program.cs file that is located in src > example-sam-app > src.  
+
+In this file, we have a class called Function which does two things:
+
+1. Makes a call to <http://checkip.amazonaws.com> to get the IP address of the function.  The endpoint being called is an external service.
+2. Prints "hello world" along with the IP address obtained from the above method.
+
+We now know that the lambda will make a call to an endpoint which is not inside the VPC to obtain the IP address.  We also know that the Elastic IP address that was provisioned in the CloudFormation code is associated with the NAT gateway which is inside the VPC.
+
+To test the lambda, run the following block of code:
+
+```bash
+gwid=$(aws apigateway get-rest-apis | jq -r '.items[] | .id')
+region="eu-west-1"
+
+endpoint="https://${gwid}.execute-api.${region}.amazonaws.com/Prod/hello"
+
+curl $endpoint
+```
+
+or alternatively you can run this script in the prepared bash script with the following commands:
+
+```bash
+cd src/tests/ && chmod 755 lambda-test.sh && ./lambda-test.sh
+```
+
+**It's worth pointing out that there is a cold start situation whereby a lambda call that hasn't been made in the last 45 minutes or so can take around 30 seconds to complete though this is beyond the scope of this tutorial.**
+
+Running this code should return a json response like below:
+
+```json
+{"message":"hello world","location":"ELASTIC_IP_ADDRESS"}
+```
+
+Check the IP address in this reponse matches the Elastic IP provisoned in the CloudFormation code.
