@@ -80,7 +80,7 @@ bucketurl=$(aws s3api create-bucket \
 echo $bucketurl
 ```
 
-Now that the s3 bucket has been created, we need to apply a policy to the bucket to control access to it.  We'll do this using a policy document which is a json file.  You will need to edit the json to point to your user arn or create your own policy document for your needs.  Once edited, run the following command
+Now that the s3 bucket has been created, we need to apply a policy to the bucket to control access to it.  We'll do this using a policy document which is a json file.  You will need to edit the json file with your S3 bucket name or create your own policy document for your needs.  Once edited, run the following command
 
 ```bash
 aws s3api put-bucket-policy \
