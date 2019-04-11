@@ -198,7 +198,7 @@ aws cloudformation deploy \
 
 ## Testing
 
-With our lambda function now sucessfully deployed, the time has come to test it to make sure it is prt of the VPC but can still access resources outside of the VPC.  
+With our lambda function now sucessfully deployed, the time has come to test it to make sure it is part of the VPC but can still access resources outside of the VPC.  
 
 We will start by examining the c# code for the helloworld program that was generated to get an understanding of what it is doing.  Lets look in the program.cs file that is located in src > example-sam-app > src.  
 
