@@ -83,7 +83,7 @@ Now that the s3 bucket has been created, we need to apply a policy to the bucket
 ```bash
 aws s3api put-bucket-policy \
 --bucket <insert unique bucket name here> \
---policy file://iam_policy.json \
+--policy file://iam_policy.json
 ```
 
 ### Step 2
