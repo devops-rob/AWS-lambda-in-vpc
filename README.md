@@ -103,7 +103,7 @@ This step is essentially building our code into an artifact that is then pushed 
 
 ### Step 3
 
-The next step is to deploy the core infrastructure that will be required to demonstrate lambdas working in a VPC.  We will deploy this using the infrastructure.yaml file.  Run the following command changing the path to your output.yml
+The next step is to deploy the core infrastructure that will be required to demonstrate lambdas working in a VPC.  We will deploy this using the output.yaml file generated from the previous step.  Run the following command changing the path to your output.yml
 
 ```bash
 aws cloudformation deploy \
